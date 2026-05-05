@@ -1,12 +1,479 @@
-<meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-	<title>呃这是什么网站</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>简约滑动框 | 水平滚动卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f1f5f9;  /* 柔和背景灰 */
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        /* 主容器 - 优雅居中 */
+        .demo-container {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* 头部说明区域 */
+        .info {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .info h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1e293b, #2d3a4a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .info p {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.4;
+            border-left: 3px solid #94a3b8;
+            padding-left: 1rem;
+            margin-top: 0.25rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #e9eef3;
+            border-radius: 40px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.8rem;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .badge span {
+            font-size: 1rem;
+        }
+
+        /* ---------- 简约滑动框核心样式 ---------- */
+        .sliding-box {
+            background-color: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
+            transition: box-shadow 0.2s ease;
+            /* 优雅内敛的阴影 */
+        }
+
+        /* 滑动区域 - 横向滚动容器 */
+        .slider-track {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 1.25rem;          /* 卡片间距 20px */
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;    /* 强制横向滚动捕捉 */
+            padding: 1.5rem 1.5rem;           /* 内距让两侧留白舒适，卡片对齐留出呼吸空间 */
+            border-radius: 28px;
+            /* 平滑滚动惯性 (移动端原生滚动增强) */
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: auto;  /* 默认 swift 但保留滚动条自然行为，不强制平滑以免抓取延迟 */
+            cursor: grab;           /* 提示可抓取滚动 (桌面视觉提示) */
+            scrollbar-width: thin;  /* Firefox 细滚动条 */
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+
+        /* 当用户主动拖动时改变光标 */
+        .slider-track:active {
+            cursor: grabbing;
+        }
+
+        /* 卡片通用样式 - 干净现代 */
+        .card {
+            flex: 0 0 280px;          /* 固定宽度，保证滑动捕捉整齐 */
+            scroll-snap-align: start; /* 滑动停止时卡片对齐容器左侧 */
+            background: #ffffff;
+            border-radius: 1.75rem;
+            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+            border: 1px solid #edf2f7;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(0px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        /* 微妙悬浮效果提升交互感 */
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.12);
+            border-color: #e2e8f0;
+            background: #fefefe;
+        }
+
+        /* 卡片装饰色条 — 极简装饰 */
+        .card-accent {
+            height: 5px;
+            width: 100%;
+            background: linear-gradient(90deg, #818cf8, #c084fc);
+        }
+
+        /* 内容区 */
+        .card-content {
+            padding: 1.5rem 1.2rem 1.6rem 1.2rem;
+            flex: 1;
+        }
+
+        .card-icon {
+            font-size: 2.4rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+            margin-bottom: 0.6rem;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            line-height: 1.45;
+            color: #475569;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .card-desc span {
+            background: #f8fafc;
+            padding: 0.2rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        /* 自定义滚动条 (WebKit - Chrome, Safari, Edge) 纤薄美观 */
+        .slider-track::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .slider-track::-webkit-scrollbar-track {
+            background: #eef2f6;
+            border-radius: 12px;
+            margin: 0 20px;
+        }
+
+        .slider-track::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+
+        .slider-track::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Firefox 滚动条已通过 scrollbar-width 设置 */
+
+        /* 移动端优化：卡片宽度稍微自适应小屏 */
+        @media (max-width: 640px) {
+            .card {
+                flex: 0 0 260px;
+            }
+            .slider-track {
+                gap: 1rem;
+                padding: 1.25rem 1.25rem;
+            }
+            .info h1 {
+                font-size: 1.6rem;
+            }
+            .card-content {
+                padding: 1.2rem 1rem 1.3rem 1rem;
+            }
+            .card-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* 极小屏进一步适配 */
+        @media (max-width: 480px) {
+            .card {
+                flex: 0 0 240px;
+            }
+        }
+
+        /* 辅助脚注 — 提示滑动方式 */
+        .hint {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.2rem;
+            font-size: 0.75rem;
+            color: #62748c;
+            font-weight: 450;
+            flex-wrap: wrap;
+        }
+
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffffcc;
+            backdrop-filter: blur(4px);
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            background: #f8fafc;
+        }
+
+        .hint-item i {
+            font-style: normal;
+            font-size: 0.9rem;
+        }
+
+        /* 模拟一个小箭头指示可滑动（仅在桌面轻微显示）*/
+        @media (min-width: 768px) {
+            .sliding-box {
+                position: relative;
+            }
+            /* 优雅的渐变透明边缘提示（无按钮干扰） */
+            .sliding-box::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 48px;
+                pointer-events: none;
+                background: linear-gradient(90deg, transparent, #ffffff);
+                border-radius: 0 28px 28px 0;
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            .sliding-box:hover::after {
+                opacity: 0.6;
+            }
+        }
+    </style>
 </head>
+<body>
+<div class="demo-container">
+    <div class="info">
+        <div class="badge">
+            <span>↔️</span> 简约滑动框 · 水平滚动
+        </div>
+        <h1>滑动探索 ∞ 灵感卡片</h1>
+        <p>流畅横向滑动 | 轻盈滚动条 | 捕捉式对齐体验</p>
+    </div>
 
-<h1>我准备挂人了。</h1>
+    <!-- 滑动框核心组件 -->
+    <div class="sliding-box">
+        <div class="slider-track" id="sliderTrack">
+            <!-- 卡片 1 — 简约设计 -->
+            <div class="card">
+                <div class="card-accent"></div>
+                <div class="card-content">
+                    <div class="card-icon">✨</div>
+                    <div class="card-title">极简美学</div>
+                    <div class="card-desc">干净线条 · 呼吸留白<br><span>滑动即享</span></div>
+                </div>
+            </div>
+            <!-- 卡片 2 — 流畅动效 -->
+            <div class="card">
+                <div class="card-accent" style="background: linear-gradient(90deg, #60a5fa, #a78bfa);"></div>
+                <div class="card-content">
+                    <div class="card-icon">🌀</div>
+                    <div class="card-title">流畅滚动</div>
+                    <div class="card-desc">原生惯性滚动<br><span>细腻捕捉</span></div>
+                </div>
+            </div>
+            <!-- 卡片 3 — 色彩柔和 -->
+            <div class="card">
+                <div class="card-accent" style="background: linear-gradient(90deg, #f97316, #facc15);"></div>
+                <div class="card-content">
+                    <div class="card-icon">🎨</div>
+                    <div class="card-title">柔和色彩</div>
+                    <div class="card-desc">低饱和视觉舒适<br><span>专注内容</span></div>
+                </div>
+            </div>
+            <!-- 卡片 4 — 响应式设计 -->
+            <div class="card">
+                <div class="card-accent" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                <div class="card-content">
+                    <div class="card-icon">📱</div>
+                    <div class="card-title">全端适配</div>
+                    <div class="card-desc">桌面 & 移动端丝滑滑动<br><span>触控友好</span></div>
+                </div>
+            </div>
+            <!-- 卡片 5 — 轻量交互 -->
+            <div class="card">
+                <div class="card-accent" style="background: linear-gradient(90deg, #ec489a, #f472b6);"></div>
+                <div class="card-content">
+                    <div class="card-icon">⚡️</div>
+                    <div class="card-title">轻量交互</div>
+                    <div class="card-desc">悬停响应 + 按压抓取<br><span>直觉操作</span></div>
+                </div>
+            </div>
+            <!-- 卡片 6 — 自定义滚动条 -->
+            <div class="card">
+                <div class="card-accent" style="background: linear-gradient(90deg, #6366f1, #8b5cf6);"></div>
+                <div class="card-content">
+                    <div class="card-icon">🎯</div>
+                    <div class="card-title">优雅定制</div>
+                    <div class="card-desc">细窄滚动条设计<br><span>不占空间</span></div>
+                </div>
+            </div>
+            <!-- 卡片 7 — 灵感源泉 加一个额外展示 -->
+            <div class="card">
+                <div class="card-accent" style="background: linear-gradient(90deg, #2dd4bf, #14b8a6);"></div>
+                <div class="card-content">
+                    <div class="card-icon">💡</div>
+                    <div class="card-title">灵感捕捉</div>
+                    <div class="card-desc">创意卡片无限滑动<br><span>滑动新维度</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p style="position: relative; top: 100px;">铁国炖大饿</p>
-<img border="2" src="/images/TG.jpg" alt="sb" width="108" height>
+    <!-- 滑动方式小提示（极简辅助） -->
+    <div class="hint">
+        <div class="hint-item">
+            <i>🖱️</i> 拖动滚动条 / 鼠标拖拽滑动
+        </div>
+        <div class="hint-item">
+            <i>📱</i> 手指左右滑动
+        </div>
+        <div class="hint-item">
+            <i>🎯</i> 卡片自动对齐
+        </div>
+    </div>
+</div>
 
-<p style="position: relative; top: 100px;">myq</p>
-<img border="2" src="/images/myq.jpg" alt="rj" width="108" height>
+<!-- 增加极其轻量的交互：支持鼠标拖拽滚动（提升滑动框 “滑动” 手感） 
+     保持简约，无额外库，增强桌面拖拽滑动体验，不破坏原生滚动条并且完全可取消 -->
+<script>
+    (function() {
+        // 增强滑动框的手动拖拽滑动体验 (类似触控板拖拽，但用鼠标按下+移动实现横向滚动)
+        // 这样使“滑动框”的操作更加直接，提升趣味性，且完全可逆，不影响原生滚动条。
+        const track = document.getElementById('sliderTrack');
+        if (!track) return;
+
+        let isDragging = false;
+        let startX = 0;
+        let scrollLeftStart = 0;
+
+        // 鼠标/指针按下开始拖拽滑动
+        const onMouseDown = (e) => {
+            // 只接受鼠标左键 (button === 0)
+            if (e.button !== 0) return;
+            // 防止意外选中文本/图片拖拽 (提升滑动体验)
+            e.preventDefault();
+            isDragging = true;
+            startX = e.pageX;
+            scrollLeftStart = track.scrollLeft;
+            track.style.cursor = 'grabbing';
+            track.style.userSelect = 'none';
+            // 阻止默认事件避免影响拖拽过程中偶尔选中页面元素
+        };
+
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const dx = e.pageX - startX;
+            // 滑动速度系数 1:1 自然滚动
+            track.scrollLeft = scrollLeftStart - dx;
+        };
+
+        const onMouseUp = () => {
+            if (isDragging) {
+                isDragging = false;
+                track.style.cursor = 'grab';
+                track.style.userSelect = '';
+                // 释放后可能由于惯性无影响，但不会意外跳转
+            }
+        };
+
+        const onMouseLeave = () => {
+            if (isDragging) {
+                // 当鼠标离开容器时停止拖拽状态，避免卡死
+                isDragging = false;
+                track.style.cursor = 'grab';
+                track.style.userSelect = '';
+            }
+        };
+
+        // 添加触摸事件支持移动端拖拽滑动（移动端本身原生滑动很棒，但拖拽事件让习惯更统一）
+        // 注意：原生的触摸滚动已经很流畅，但加上拖拽逻辑会稍微干扰，为了桌面拖拽纯粹，移动端可选择性轻量覆盖
+        // 移动端 touch 事件 保持与原生共存且不冲突 (如果不希望干扰原生则不对 touch 做 preventDefault)
+        // 为了更好的桌面滑动感，对移动端不强制添加复杂逻辑，因为移动端本来支持触控滑动非常棒。
+        // 但为了体验一致，移动端仍然可以用手指滑动，我们的拖拽逻辑在移动端上有可能会与原生滚动冲突，所以针对移动端进行检测，仅在非触摸主要设备启用？或者smart方式
+        // 更完善的：只在鼠标设备注册鼠标事件，触摸事件依然使用原生。这样保证移动端原生体验最优，桌面鼠标拖拽增强。
+        if (window.matchMedia("(pointer: fine)").matches) {
+            // 桌面精确指针设备(鼠标)启用拖拽滑动
+            track.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            track.addEventListener('mouseleave', onMouseLeave);
+            // 初始光标设定
+            track.style.cursor = 'grab';
+        } else {
+            // 触摸屏设备保持原生滚动，不加任何拖拽干扰，但保留光标默认（自动）。而且触摸屏可自动滚动。
+            // 为了尊重原生触发滚动，不做额外干预，确保滚动捕捉和滚动条操作完美。
+            // 但是仍然保留抓取光标提示无意义，设置为默认即可
+            track.style.cursor = 'default';
+        }
+
+        // 小优化：防止在拖拽时浏览器意外选中图片或文字（全局保护）
+        document.addEventListener('dragstart', (e) => {
+            if (isDragging) e.preventDefault();
+        });
+        
+        // 可选的平滑滚动辅助: 增加滚轮支持水平滚动(Shift已经是原生水平滚动，不重复做)
+        // 但为了让用户无Shift时也可水平滚动？通过监听滚轮事件将垂直滚动转为横向滚动（可选简约增强）
+        // 许多优雅滑动框提供这一细节，为了提升「滑动框」的直觉性，增加滚轮水平滑动（无需按shift）
+        // 但注意避免和页面滚动冲突，只在鼠标悬浮于滑动框上时转换垂直滚动为横向滚动
+        let wheelActive = true;
+        track.addEventListener('wheel', (e) => {
+            // 如果用户按住shift键时浏览器默认水平滚动，不做干扰，同时避免双重滚动
+            if (e.shiftKey) return;
+            // 当鼠标位于滑动框内时，水平滚动（横向滚动）以增强滑动体验
+            // 仅当 deltaY 不为0时，将纵向滚动转为横向滚动（左右滑动）
+            if (Math.abs(e.deltaY) > 0) {
+                e.preventDefault();
+                // 滚动速度线性调节，平滑增量
+                const scrollAmount = e.deltaY * 0.8;
+                track.scrollLeft += scrollAmount;
+                // 惯性一般由浏览器处理，不断累加即可
+            }
+        }, { passive: false });
+        
+        // 可选: 如果用户在使用滚轮横向滚动时希望有滚动捕捉效果, 但滚动捕捉在溢流中会自然对齐
+        // 非常好，保持原生捕捉个性。
+    })();
+</script>
+</body>
+</html>
